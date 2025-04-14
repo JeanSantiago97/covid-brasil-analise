@@ -1,0 +1,48 @@
+CREATE OR REPLACE TABLE `praxis-gear-456718-m2.schema_projeto.tb_covid_com_populacao_mensal` AS
+WITH base_com_ano_mes AS (
+  SELECT
+    *,
+    FORMAT_DATE('%Y-%m', date) AS ano_mes
+  FROM `praxis-gear-456718-m2.schema_projeto.tb_base_covid_brazil_csv`
+),
+
+ultimo_registro_por_mes AS (
+  SELECT *
+  FROM (
+    SELECT *,
+      ROW_NUMBER() OVER (
+        PARTITION BY CAST(code AS INT64), FORMAT_DATE('%Y-%m', date)
+        ORDER BY date DESC
+      ) AS ordem
+    FROM base_com_ano_mes
+  )
+  WHERE ordem = 1
+),
+
+dados_com_populacao AS (
+  SELECT
+    covid.date,
+    FORMAT_DATE('%Y-%m', covid.date) AS ano_mes,
+    covid.state,
+    covid.name AS city,
+    CAST(covid.code AS INT64) AS city_code,
+    covid.cases,
+    covid.deaths,
+    pop.region,
+    pop.population
+  FROM ultimo_registro_por_mes AS covid
+  JOIN `praxis-gear-456718-m2.schema_projeto.brazil_population_2019` AS pop
+  ON CAST(covid.code AS INT64) = pop.city_code
+  WHERE covid.cases > 0 AND pop.population > 0
+)
+
+SELECT
+  *,
+  ROUND((deaths / population) * 10000, 2) AS taxa_mortalidade_10k,
+  ROUND((deaths / population) * 100000, 2) AS taxa_mortalidade_100k,
+  ROUND((cases / population) * 100000, 2) AS incidencia_100k,
+  ROUND((deaths / cases) * 100, 2) AS letalidade_percentual,
+  ROUND((cases / population), 5) AS densidade_casos_por_habitante,
+  ROUND((cases / population) * 100, 2) AS percentual_contaminados,
+  ROUND((deaths / population) * 100, 2) AS percentual_mortes_populacao
+FROM dados_com_populacao
