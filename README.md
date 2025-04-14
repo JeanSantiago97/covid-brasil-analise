@@ -60,6 +60,7 @@ O notebook contém os seguintes gráficos:
 
 ## 📁 Estrutura de Arquivos
 
+```
 covid-brasil-analise/ 
 │ ├── Analise_COVID.ipynb # Notebook com visualizações e análises 
 ├── tbl_resultado_covid.csv # Base consolidada exportada do BigQuery 
@@ -68,7 +69,7 @@ covid-brasil-analise/
 │ ├── ❌ brazil_covid19_cities.csv # Base bruta de casos e óbitos por cidade 
 │ ├── ❌ brazil_population_2019.csv # População estimada por cidade em 2019 
 │ └── query.txt # Consulta SQL utilizada no BigQuery
-
+```
 ---
 
 ## ✍️ Autor
